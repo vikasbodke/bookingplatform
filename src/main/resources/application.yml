@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: BookingPlatform
+  
+  # Database Configuration
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 10
+  
+  # Schema Initialization
+  sql:
+    init:
+      mode: never  # Spring Boot to initialize schema via R2DBC
+  
+  data:
+    r2dbc:
+      initialization-mode: always
+      schema: classpath:/schema.sql
+      data: classpath:/data.sql
+  
+  # JPA/Hibernate (if needed)
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  
+  # Caching
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=1h
+
+# Micrometer Tracing Configuration
+management:
+  tracing:
+    sampling:
+      probability: 1.0  # Sample 100% of requests
+    propagation:
+      type: W3C,B3  # Support both W3C and B3 propagation formats
+    baggage:
+      correlation:
+        enabled: true
+        fields: traceId,spanId
+    brave:
+      sampler:
+        probability: 1.0  # Sample 100% of requests
+      propagation:
+        type: W3C,B3  # Support both W3C and B3 propagation formats
+    org.springframework.data.r2dbc.connectionfactory.init.ScriptUtils: DEBUG
+
+
+# Logging Configuration
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: INFO
+    com.bookingplatform: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+    # R2DBC specific logging
+    org.springframework.r2dbc.connection: DEBUG
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    whitelabel:
+      enabled: false
